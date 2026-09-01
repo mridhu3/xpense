@@ -32,7 +32,7 @@ export default function HomeScreen() {
           <View>
             <View style={styles.header}>
               <View><LogoMark /><Text style={styles.greeting}>Good afternoon, {firstName} <Text style={styles.wave}>✦</Text></Text><Text style={styles.subGreeting}>Here’s your money snapshot</Text></View>
-              <Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [styles.bellButton, pressed && { opacity: 0.6 }]}><MaterialIcons name="notifications-none" size={23} color={colors.ink} /><View style={styles.notificationDot} /></Pressable>
+              <Pressable onPress={() => router.push("/settings")} accessibilityLabel="Open settings" style={({ pressed }) => [styles.bellButton, pressed && { opacity: 0.6 }]}><MaterialIcons name="settings" size={23} color={colors.ink} /></Pressable>
             </View>
 
             <Card dark style={styles.balanceCard}>
