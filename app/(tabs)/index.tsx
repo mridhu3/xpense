@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useMemo } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -52,7 +52,7 @@ export default function HomeScreen() {
             <AICoach spent={totalSpent} budget={monthlyBudget} categories={categoryTotals} goalCount={goals.length} />
 
             <SectionTitle title="Spending by category" action="See all" onAction={() => router.push("/activity")} />
-            <View style={styles.categoryRow}>{categoryOrder.map((category) => { const meta = categoryMeta[category]; const value = categoryTotals[category]; return <Pressable key={category} onPress={() => router.push("/activity")} style={({ pressed }) => [styles.categoryCard, pressed && { opacity: 0.72 }]}><IconBubble name={meta.icon as never} color={`${meta.color}18`} iconColor={meta.color} size={42} /><Text style={styles.categoryName}>{category}</Text><Text style={styles.categoryValue}>{formatINR(value)}</Text><ProgressBar value={value} total={meta.limit} color={meta.color} height={5} /></Pressable>; })}</View>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryRow}>{categoryOrder.map((category) => { const meta = categoryMeta[category]; const value = categoryTotals[category]; return <Pressable key={category} onPress={() => router.push("/activity")} style={({ pressed }) => [styles.categoryCard, pressed && { opacity: 0.72 }]}><IconBubble name={meta.icon as never} color={`${meta.color}18`} iconColor={meta.color} size={42} /><Text style={styles.categoryName}>{category}</Text><Text style={styles.categoryValue}>{formatINR(value)}</Text><ProgressBar value={value} total={meta.limit} color={meta.color} height={5} /></Pressable>; })}</ScrollView>
 
             <SectionTitle title="Goal vaults" action="Manage" onAction={() => router.push("/goals")} />
             <View style={styles.goalsRow}>{goals.slice(0, 2).map((goal) => <Pressable key={goal.id} onPress={() => router.push("/goals")} style={({ pressed }) => [styles.goalCard, pressed && { opacity: 0.72 }]}><View style={styles.goalTop}><Text style={styles.goalEmoji}>{goal.emoji}</Text><Text style={styles.goalPercent}>{Math.round((goal.saved / goal.target) * 100)}%</Text></View><Text style={styles.goalName}>{goal.name}</Text><Currency amount={goal.saved} color={colors.ink} style={styles.goalSaved} /><Text style={styles.goalTarget}>of {formatINR(goal.target)}</Text><ProgressBar value={goal.saved} total={goal.target} color={goal.accent} height={7} /><Text style={styles.goalDue}>{goal.dueLabel}</Text></Pressable>)}</View>
