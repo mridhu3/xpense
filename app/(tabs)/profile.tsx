@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { Alert, Pressable, ScrollView, Share, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { ScreenContainer } from "@/components/screen-container";
@@ -9,9 +9,8 @@ import { firebaseAuth } from "@/lib/firebase";
 import { useXPense } from "@/lib/xpense-store";
 
 export default function ProfileScreen() {
-  const { xp, coins, streak, transactions, goals, squadCode } = useXPense();
+  const { xp, coins, streak, transactions, goals } = useXPense();
   const accountEmail = firebaseAuth?.currentUser?.email ?? "Local-only account";
-  const inviteSquad = async () => { await Share.share({ title: "Join my XPense squad", message: `Join my XPense squad with invite code ${squadCode}. Install XPense and enter this code to join.` }); };
   return <ScreenContainer edges={["top", "left", "right"]} style={styles.screen}><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
     <View style={styles.topRow}><LogoMark /><Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [styles.settingsButton, pressed && { opacity: 0.6 }]}><MaterialIcons name="settings" size={21} color={colors.ink} /></Pressable></View>
     <View style={styles.profileHead}><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View><Text style={styles.name}>Arjun Mehta</Text><Text style={styles.email}>{accountEmail}</Text><View style={styles.levelPill}><MaterialIcons name="stars" size={15} color={colors.orange} /><Text style={styles.levelPillText}>Level 08 · Money learner</Text></View></View>
@@ -21,8 +20,8 @@ export default function ProfileScreen() {
     <SectionTitle title="Account & sync" action="Privacy first" />
     <FirebaseAccountCard />
     <SectionTitle title="Money setup" />
-    <View style={styles.menu}><MenuRow icon="account-balance-wallet" title="Wallets" detail="UPI · Cash · Card" onPress={() => Alert.alert("Wallets", "UPI, Cash, and Card are ready to use when you add an expense.")} /><MenuRow icon="notifications-none" title="Nudges & alerts" detail="Smart reminders on" onPress={() => router.push("/settings")} /><MenuRow icon="groups" title="Squad mode" detail={`Invite roommates · ${squadCode}`} onPress={inviteSquad} /><MenuRow icon="school" title="Financial literacy" detail="12 lessons available" onPress={() => Alert.alert("Financial literacy", "Your 12 money lessons are coming next. For now, ask AI Coach for a personalized lesson.")} /></View>
-    <Card style={styles.syncCard}><View style={styles.syncIcon}><MaterialIcons name="cloud-done" size={22} color={colors.teal} /></View><View style={styles.syncCopy}><Text style={styles.syncTitle}>Local-first & private</Text><Text style={styles.syncBody}>Your data is available offline. Sign in above to sync, or share your squad invite from Squad mode.</Text></View></Card>
+    <View style={styles.menu}><MenuRow icon="account-balance-wallet" title="Wallets" detail="UPI · Cash · Card" onPress={() => Alert.alert("Wallets", "UPI, Cash, and Card are ready to use when you add an expense.")} /><MenuRow icon="notifications-none" title="Nudges & alerts" detail="Smart reminders on" onPress={() => router.push("/settings")} /><MenuRow icon="school" title="Financial literacy" detail="12 lessons available" onPress={() => Alert.alert("Financial literacy", "Your 12 money lessons are coming next. For now, ask AI Coach for a personalized lesson.")} /></View>
+    <Card style={styles.syncCard}><View style={styles.syncIcon}><MaterialIcons name="cloud-done" size={22} color={colors.teal} /></View><View style={styles.syncCopy}><Text style={styles.syncTitle}>Local-first & private</Text><Text style={styles.syncBody}>Your data is available offline. Sign in above to sync your personal workspace across devices.</Text></View></Card>
   </ScrollView></ScreenContainer>;
 }
 

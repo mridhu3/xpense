@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
@@ -7,22 +7,24 @@ import { firebaseConfigured, firebaseSignIn, firebaseSignOut, firebaseSignUp, pu
 import { useXPense, type Transaction } from "@/lib/xpense-store";
 
 export function FirebaseAccountCard() {
-  const { transactions, mergeTransactions } = useXPense();
+  const { transactions, replaceTransactions, switchUser } = useXPense();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [status, setStatus] = useState("");
   const [busy, setBusy] = useState(false);
+  const switchUserRef = useRef(switchUser);
+  switchUserRef.current = switchUser;
 
-  useEffect(() => watchFirebaseUser((user) => setUserEmail(user?.email ?? null)), []);
+  useEffect(() => watchFirebaseUser((user) => { setUserEmail(user?.email ?? null); void switchUserRef.current(user?.uid ?? null, !user); }), []);
 
   const sync = async (uid: string, localTransactions = transactions) => {
     const remote = await pullTransactions(uid);
     const mergedMap = new Map<string, Transaction>();
     [...remote, ...localTransactions].forEach((transaction) => mergedMap.set(transaction.id, transaction));
     const merged = Array.from(mergedMap.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
-    mergeTransactions(remote);
+    replaceTransactions(merged);
     await pushTransactions(uid, merged);
     setStatus(`Synced ${merged.length} expenses just now`);
   };
@@ -31,7 +33,8 @@ export function FirebaseAccountCard() {
     setBusy(true); setStatus("");
     try {
       const credential = mode === "signin" ? await firebaseSignIn(email, password) : await firebaseSignUp(email, password);
-      await sync(credential.user.uid);
+      const localTransactions = await switchUser(credential.user.uid, mode === "signup");
+      await sync(credential.user.uid, localTransactions);
     } catch (error) {
       setStatus(error instanceof Error ? error.message.replace("Firebase: ", "") : "Could not connect to Firebase");
     } finally { setBusy(false); }

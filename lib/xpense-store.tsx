@@ -45,7 +45,6 @@ type StoreState = {
   streak: number;
   lastSavedAt: string | null;
   budgetMonth: string;
-  squadCode: string;
 };
 
 type AddExpenseInput = Omit<Transaction, "id" | "createdAt">;
@@ -54,11 +53,13 @@ type StoreContextValue = StoreState & {
   hydrated: boolean;
   addExpense: (expense: AddExpenseInput) => void;
   mergeTransactions: (transactions: Transaction[]) => void;
+  replaceTransactions: (transactions: Transaction[]) => void;
   setBudgetMonth: (month: string) => void;
   completeQuest: (questId: string) => void;
   addToGoal: (goalId: string, amount: number) => void;
   adjustGoal: (goalId: string, amount: number) => void;
   createGoal: (input: Omit<Goal, "id" | "saved">) => void;
+  switchUser: (userId: string | null, reset?: boolean) => Promise<Transaction[]>;
   totalSpent: number;
   categoryTotals: Record<Category, number>;
   availableMonths: string[];
@@ -97,17 +98,19 @@ const initialState: StoreState = {
   streak: 12,
   lastSavedAt: null,
   budgetMonth: "2026-09",
-  squadCode: "XP-ARJUN-26",
 };
+
+const emptyState: StoreState = { ...initialState, transactions: [], goals: [], quests: [], xp: 0, coins: 0, streak: 0 };
 
 const StoreContext = createContext<StoreContextValue | null>(null);
 
 export function XPenseProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<StoreState>(initialState);
   const [hydrated, setHydrated] = useState(false);
+  const [storageUserId, setStorageUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+    AsyncStorage.getItem(`${STORAGE_KEY}.guest`)
       .then((value) => {
         if (value) {
           try {
@@ -122,8 +125,8 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, lastSavedAt: new Date().toISOString() })).catch(() => undefined);
-  }, [state, hydrated]);
+    AsyncStorage.setItem(`${STORAGE_KEY}.${storageUserId ?? "guest"}`, JSON.stringify({ ...state, lastSavedAt: new Date().toISOString() })).catch(() => undefined);
+  }, [state, hydrated, storageUserId]);
 
   const addExpense = (expense: AddExpenseInput) => {
     setState((current) => ({
@@ -137,6 +140,8 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
   const mergeTransactions = (remoteTransactions: Transaction[]) => {
     setState((current) => ({ ...current, transactions: mergeTransactionsById(current.transactions, remoteTransactions) }));
   };
+
+  const replaceTransactions = (transactions: Transaction[]) => setState((current) => ({ ...current, transactions }));
 
   const setBudgetMonth = (month: string) => setState((current) => ({ ...current, budgetMonth: month }));
 
@@ -167,6 +172,23 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
 
   const createGoal = (input: Omit<Goal, "id" | "saved">) => setState((current) => ({ ...current, goals: [...current.goals, { ...input, id: `g-${Date.now()}`, saved: 0 }] }));
 
+  const switchUser = async (userId: string | null, reset = false): Promise<Transaction[]> => {
+    const nextState = reset ? emptyState : (() => null)();
+    if (nextState) {
+      setStorageUserId(userId);
+      setState(nextState);
+      setHydrated(true);
+      await AsyncStorage.removeItem(`${STORAGE_KEY}.${userId ?? "guest"}`);
+      return [];
+    }
+    const value = await AsyncStorage.getItem(`${STORAGE_KEY}.${userId ?? "guest"}`);
+    const loaded = value ? { ...emptyState, ...JSON.parse(value) } : userId ? emptyState : initialState;
+    setStorageUserId(userId);
+    setState(loaded);
+    setHydrated(true);
+    return loaded.transactions;
+  };
+
   const value = useMemo<StoreContextValue>(() => {
     const availableMonths = Array.from(new Set([state.budgetMonth, ...state.transactions.map((transaction) => transaction.createdAt.slice(0, 7))])).sort().reverse();
     const monthTransactions = state.transactions.filter((transaction) => transaction.createdAt.slice(0, 7) === state.budgetMonth);
@@ -177,11 +199,13 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
       hydrated,
       addExpense,
       mergeTransactions,
+      replaceTransactions,
       setBudgetMonth,
       completeQuest,
       addToGoal,
       adjustGoal,
       createGoal,
+      switchUser,
       totalSpent: monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0),
       categoryTotals,
       availableMonths,
