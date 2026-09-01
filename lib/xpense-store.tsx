@@ -45,6 +45,8 @@ type StoreState = {
   streak: number;
   lastSavedAt: string | null;
   budgetMonth: string;
+  profileName: string;
+  avatar: string;
 };
 
 type AddExpenseInput = Omit<Transaction, "id" | "createdAt">;
@@ -59,6 +61,7 @@ type StoreContextValue = StoreState & {
   addToGoal: (goalId: string, amount: number) => void;
   adjustGoal: (goalId: string, amount: number) => void;
   createGoal: (input: Omit<Goal, "id" | "saved">) => void;
+  setProfile: (profileName: string, avatar: string) => void;
   switchUser: (userId: string | null, reset?: boolean) => Promise<Transaction[]>;
   totalSpent: number;
   categoryTotals: Record<Category, number>;
@@ -98,6 +101,8 @@ const initialState: StoreState = {
   streak: 12,
   lastSavedAt: null,
   budgetMonth: "2026-09",
+  profileName: "User",
+  avatar: "🙂",
 };
 
 const emptyState: StoreState = { ...initialState, transactions: [], goals: [], quests: [], xp: 0, coins: 0, streak: 0 };
@@ -172,6 +177,8 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
 
   const createGoal = (input: Omit<Goal, "id" | "saved">) => setState((current) => ({ ...current, goals: [...current.goals, { ...input, id: `g-${Date.now()}`, saved: 0 }] }));
 
+  const setProfile = (profileName: string, avatar: string) => setState((current) => ({ ...current, profileName: profileName.trim() || "User", avatar }));
+
   const switchUser = async (userId: string | null, reset = false): Promise<Transaction[]> => {
     const nextState = reset ? emptyState : (() => null)();
     if (nextState) {
@@ -205,6 +212,7 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
       addToGoal,
       adjustGoal,
       createGoal,
+      setProfile,
       switchUser,
       totalSpent: monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0),
       categoryTotals,
