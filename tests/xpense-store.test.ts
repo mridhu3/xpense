@@ -6,6 +6,7 @@ describe("XPense store helpers", () => {
   it("formats Indian rupee amounts with locale separators", () => {
     expect(formatINR(12480)).toBe("₹12,480");
     expect(formatINR(0)).toBe("₹0");
+    expect(formatINR(-1250)).toBe("-₹1,250");
   });
 
   it("labels recent transaction dates relative to today", () => {

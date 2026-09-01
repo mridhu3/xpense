@@ -53,10 +53,11 @@ type AddExpenseInput = Omit<Transaction, "id" | "createdAt">;
 
 type StoreContextValue = StoreState & {
   hydrated: boolean;
-  addExpense: (expense: AddExpenseInput) => void;
+  addExpense: (expense: AddExpenseInput) => { exceeded: boolean; remaining: number };
   mergeTransactions: (transactions: Transaction[]) => void;
   replaceTransactions: (transactions: Transaction[]) => void;
   setBudgetMonth: (month: string) => void;
+  setMonthlyBudget: (amount: number) => void;
   completeQuest: (questId: string) => void;
   addToGoal: (goalId: string, amount: number) => void;
   adjustGoal: (goalId: string, amount: number) => void;
@@ -89,6 +90,9 @@ const defaultQuests: Quest[] = [
   { id: "q2", title: "No-spend weekend", subtitle: "Saturday + Sunday", reward: 200, progress: 2, total: 2, completed: true, icon: "weekend" },
   { id: "q3", title: "Save ₹500 this week", subtitle: "Move money to a goal vault", reward: 80, progress: 320, total: 500, completed: false, icon: "savings" },
   { id: "q4", title: "Money lesson", subtitle: "Learn about credit scores", reward: 40, progress: 0, total: 1, completed: false, icon: "school" },
+  { id: "q5", title: "Review your month", subtitle: "Open your spending insights", reward: 60, progress: 0, total: 1, completed: false, icon: "assessment" },
+  { id: "q6", title: "Add to any vault", subtitle: "Make one flexible deposit", reward: 90, progress: 0, total: 1, completed: false, icon: "account-balance" },
+  { id: "q7", title: "Keep a clean streak", subtitle: "Log today’s spending", reward: 70, progress: 0, total: 1, completed: false, icon: "check-circle" },
 ];
 
 const initialState: StoreState = {
@@ -134,12 +138,16 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
   }, [state, hydrated, storageUserId]);
 
   const addExpense = (expense: AddExpenseInput) => {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const spentThisMonth = state.transactions.filter((transaction) => transaction.createdAt.slice(0, 7) === currentMonth).reduce((sum, transaction) => sum + transaction.amount, 0);
+    const remaining = state.monthlyBudget - spentThisMonth - expense.amount;
     setState((current) => ({
       ...current,
       transactions: [{ ...expense, id: `t-${Date.now()}`, createdAt: new Date().toISOString() }, ...current.transactions],
       xp: current.xp + 15,
       coins: current.coins + 5,
     }));
+    return { exceeded: remaining < 0, remaining };
   };
 
   const mergeTransactions = (remoteTransactions: Transaction[]) => {
@@ -149,6 +157,8 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
   const replaceTransactions = (transactions: Transaction[]) => setState((current) => ({ ...current, transactions }));
 
   const setBudgetMonth = (month: string) => setState((current) => ({ ...current, budgetMonth: month }));
+
+  const setMonthlyBudget = (amount: number) => { if (Number.isFinite(amount) && amount > 0) setState((current) => ({ ...current, monthlyBudget: Math.round(amount) })); };
 
   const completeQuest = (questId: string) => {
     setState((current) => {
@@ -208,6 +218,7 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
       mergeTransactions,
       replaceTransactions,
       setBudgetMonth,
+      setMonthlyBudget,
       completeQuest,
       addToGoal,
       adjustGoal,
@@ -245,7 +256,8 @@ export function mergeTransactionsById(local: Transaction[], remote: Transaction[
 }
 
 export function formatINR(amount: number) {
-  return `₹${Math.round(amount).toLocaleString("en-IN")}`;
+  const rounded = Math.round(amount);
+  return rounded < 0 ? `-₹${Math.abs(rounded).toLocaleString("en-IN")}` : `₹${rounded.toLocaleString("en-IN")}`;
 }
 
 export function formatDate(value: string) {

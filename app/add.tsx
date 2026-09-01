@@ -9,7 +9,7 @@ import { RecordingPresets, requestRecordingPermissionsAsync, setAudioModeAsync, 
 
 import { ScreenContainer } from "@/components/screen-container";
 import { colors, IconBubble } from "@/components/xpense-ui";
-import { categoryMeta, useXPense, type Category, type Wallet } from "@/lib/xpense-store";
+import { categoryMeta, formatINR, useXPense, type Category, type Wallet } from "@/lib/xpense-store";
 import { trpc } from "@/lib/trpc";
 
 const categories: Category[] = ["Food", "Transport", "Shopping", "Bills", "Entertainment", "Other"];
@@ -18,7 +18,7 @@ const wallets: Wallet[] = ["UPI", "Cash", "Card"];
 type ParsedExpense = { merchant: string; amount: number; category: Category; wallet: Wallet; confidence: number; note: string };
 
 export default function AddExpenseScreen() {
-  const { addExpense } = useXPense();
+  const { addExpense, monthlyBudget } = useXPense();
   const [amount, setAmount] = useState("");
   const [merchant, setMerchant] = useState("");
   const [category, setCategory] = useState<Category>("Food");
@@ -107,8 +107,9 @@ export default function AddExpenseScreen() {
 
   const save = () => {
     if (!canSave) return;
-    addExpense({ merchant: merchant.trim(), amount: numericAmount, category, wallet, note: note.trim() || undefined });
+    const result = addExpense({ merchant: merchant.trim(), amount: numericAmount, category, wallet, note: note.trim() || undefined });
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+    if (result.exceeded) Alert.alert("Budget exceeded", `This expense puts you ${formatINR(Math.abs(result.remaining))} over your ${formatINR(monthlyBudget)} monthly budget. Your available money is now negative.`);
     router.back();
   };
 

@@ -14,8 +14,9 @@ export default function HomeScreen() {
   const { transactions, goals, totalSpent, monthlyBudget, categoryTotals, xp, budgetMonth, availableMonths, setBudgetMonth, profileName } = useXPense();
   const monthIndex = availableMonths.indexOf(budgetMonth);
   const changeMonth = (direction: number) => { const next = availableMonths[monthIndex + direction]; if (next) setBudgetMonth(next); };
-  const budgetPercent = Math.min(totalSpent / monthlyBudget, 1);
-  const remaining = Math.max(monthlyBudget - totalSpent, 0);
+  const budgetPercent = Math.max(0, Math.min(totalSpent / monthlyBudget, 1));
+  const remaining = monthlyBudget - totalSpent;
+  const overBudget = remaining < 0;
   const forecast = Math.round(totalSpent * 1.18);
   const firstName = profileName.split(" ")[0] || "User";
   const topTransactions = useMemo(() => transactions.slice(0, 4), [transactions]);
@@ -35,9 +36,9 @@ export default function HomeScreen() {
             </View>
 
             <Card dark style={styles.balanceCard}>
-              <View style={styles.balanceTop}><Text style={styles.balanceLabel}>AVAILABLE TO SPEND</Text><View style={styles.onTrack}><MaterialIcons name="trending-up" size={13} color="#8FE4C0" /><Text style={styles.onTrackText}>On track</Text></View></View>
+              <View style={styles.balanceTop}><Text style={styles.balanceLabel}>AVAILABLE TO SPEND</Text><View style={[styles.onTrack, overBudget && styles.overTrack]}><MaterialIcons name={overBudget ? "warning" : "trending-up"} size={13} color={overBudget ? "#FFD1D1" : "#8FE4C0"} /><Text style={[styles.onTrackText, overBudget && styles.overTrackText]}>{overBudget ? "Over budget" : "On track"}</Text></View></View>
               <Currency amount={remaining} color="#FFFFFF" style={styles.balanceAmount} />
-              <Text style={styles.balanceHint}>of {formatINR(monthlyBudget)} monthly budget left</Text>
+              <Text style={[styles.balanceHint, overBudget && styles.overBudgetHint]}>{overBudget ? `${formatINR(Math.abs(remaining))} over your budget` : `of ${formatINR(monthlyBudget)} monthly budget left`}</Text>
               <View style={styles.balanceDivider} />
               <View style={styles.balanceStats}><View><Text style={styles.darkStatLabel}>Spent this month</Text><Currency amount={totalSpent} color="#FFFFFF" style={styles.darkStatValue} /></View><View><Text style={styles.darkStatLabel}>7-day forecast</Text><Currency amount={forecast} color="#FFFFFF" style={styles.darkStatValue} /></View><View style={styles.xpBadge}><Text style={styles.xpBadgeText}>LVL 08</Text><Text style={styles.xpBadgeSub}>{xp.toLocaleString("en-IN")} XP</Text></View></View>
             </Card>
@@ -90,8 +91,11 @@ const styles = StyleSheet.create({
   balanceLabel: { color: "#A4B7C3", fontSize: 10, fontWeight: "900", letterSpacing: 1.2 },
   onTrack: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: "#224A4C", borderRadius: 9, paddingHorizontal: 8, paddingVertical: 5 },
   onTrackText: { color: "#8FE4C0", fontSize: 11, fontWeight: "800" },
+  overTrack: { backgroundColor: "#6B343B" },
+  overTrackText: { color: "#FFD1D1" },
   balanceAmount: { fontSize: 33, marginTop: 20, letterSpacing: -1.2 },
   balanceHint: { color: "#A4B7C3", fontSize: 12, marginTop: 4 },
+  overBudgetHint: { color: "#FFD1D1" },
   balanceDivider: { height: 1, backgroundColor: "#2D4653", marginVertical: 18 },
   balanceStats: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   darkStatLabel: { color: "#8DA5B2", fontSize: 10, marginBottom: 4 },
