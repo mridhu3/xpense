@@ -43,6 +43,8 @@ eas build --platform android --profile preview
 
 The Profile tab contains the sign-in, account creation, sync-now, and sign-out controls. On first sync, local and remote transactions are merged by transaction ID and the combined set is uploaded back to Firestore.
 
+The supplied project was reachable, but its REST response currently reports `PASSWORD_LOGIN_DISABLED`. This means the Firebase Console switch in step 3 still needs to be enabled by a project owner; the Android config file alone cannot change that server-side setting.
+
 ## Security notes
 
 The Firestore rules are the authorization boundary. Keep them deployed and do not loosen them to `allow read, write: if true`. Firebase client config values can be present in an Expo client bundle; Firebase Admin credentials must remain server-side and are not needed for this client-side sync design.

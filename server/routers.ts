@@ -91,6 +91,24 @@ export const appRouter = router({
       .input(z.object({ transcript: z.string().min(3).max(500) }))
       .mutation(async ({ input }) => ({ transcript: input.transcript, ...(await parseExpenseText(input.transcript)) })),
   }),
+
+  coach: router({
+    advice: publicProcedure
+      .input(z.object({ spent: z.number().nonnegative(), budget: z.number().positive(), categories: z.record(z.string(), z.number().nonnegative()), goalCount: z.number().int().nonnegative() }))
+      .mutation(async ({ input }) => {
+        const response = await invokeLLM({
+          model: "gpt-5-mini",
+          messages: [
+            { role: "system", content: "You are XPense Coach, a warm and practical personal budgeting coach for Indian students. Give specific advice without shame, never recommend financial products, and use INR." },
+            { role: "user", content: `This month the user spent ₹${input.spent} of a ₹${input.budget} budget. Category totals: ${JSON.stringify(input.categories)}. They have ${input.goalCount} savings goals. Give three short, actionable tips.` },
+          ],
+          response_format: { type: "json_schema", json_schema: { name: "coach_advice", strict: true, schema: { type: "object", properties: { headline: { type: "string" }, tips: { type: "array", items: { type: "string" } }, action: { type: "string" } }, required: ["headline", "tips", "action"], additionalProperties: false } } },
+        });
+        const content = response.choices[0]?.message?.content;
+        if (typeof content !== "string") throw new Error("The coach returned no advice");
+        return JSON.parse(content) as { headline: string; tips: string[]; action: string };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

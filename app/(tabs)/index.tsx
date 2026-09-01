@@ -4,13 +4,16 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { AICoach } from "@/components/ai-coach";
 import { Card, colors, Currency, IconBubble, LogoMark, ProgressBar, SectionTitle } from "@/components/xpense-ui";
 import { categoryMeta, formatDate, formatINR, useXPense, type Category, type Transaction } from "@/lib/xpense-store";
 
 const categoryOrder: Category[] = ["Food", "Transport", "Shopping", "Bills", "Entertainment"];
 
 export default function HomeScreen() {
-  const { transactions, goals, totalSpent, monthlyBudget, categoryTotals, xp } = useXPense();
+  const { transactions, goals, totalSpent, monthlyBudget, categoryTotals, xp, budgetMonth, availableMonths, setBudgetMonth } = useXPense();
+  const monthIndex = availableMonths.indexOf(budgetMonth);
+  const changeMonth = (direction: number) => { const next = availableMonths[monthIndex + direction]; if (next) setBudgetMonth(next); };
   const budgetPercent = Math.min(totalSpent / monthlyBudget, 1);
   const remaining = Math.max(monthlyBudget - totalSpent, 0);
   const forecast = Math.round(totalSpent * 1.18);
@@ -40,11 +43,12 @@ export default function HomeScreen() {
             </Card>
 
             <Card style={styles.budgetCard}>
-              <View style={styles.budgetCopy}><Text style={styles.cardEyebrow}>MONTHLY BUDGET</Text><Text style={styles.budgetTitle}>{formatINR(totalSpent)} <Text style={styles.budgetOf}>/ {formatINR(monthlyBudget)}</Text></Text><ProgressBar value={totalSpent} total={monthlyBudget} color={colors.orange} height={10} /><Text style={styles.budgetCaption}>{Math.round(budgetPercent * 100)}% used · {formatINR(remaining)} remaining</Text></View>
+              <View style={styles.budgetCopy}><View style={styles.monthRow}><Text style={styles.cardEyebrow}>MONTHLY BUDGET</Text><View style={styles.monthControls}><Pressable onPress={() => changeMonth(1)} disabled={monthIndex >= availableMonths.length - 1} style={styles.monthArrow}><MaterialIcons name="chevron-left" size={17} color={colors.muted} /></Pressable><Text style={styles.monthLabel}>{formatMonth(budgetMonth)}</Text><Pressable onPress={() => changeMonth(-1)} disabled={monthIndex <= 0} style={styles.monthArrow}><MaterialIcons name="chevron-right" size={17} color={colors.muted} /></Pressable></View></View><Text style={styles.budgetTitle}>{formatINR(totalSpent)} <Text style={styles.budgetOf}>/ {formatINR(monthlyBudget)}</Text></Text><ProgressBar value={totalSpent} total={monthlyBudget} color={colors.orange} height={10} /><Text style={styles.budgetCaption}>{Math.round(budgetPercent * 100)}% used · {formatINR(remaining)} remaining</Text></View>
               <View style={styles.ring}><View style={styles.ringInner}><Text style={styles.ringPercent}>{Math.round(budgetPercent * 100)}%</Text><Text style={styles.ringLabel}>used</Text></View></View>
             </Card>
 
             <View style={styles.insight}><View style={styles.insightIcon}><MaterialIcons name="auto-awesome" size={21} color={colors.orange} /></View><View style={styles.insightText}><Text style={styles.insightLabel}>SMART NUDGE</Text><Text style={styles.insightBody}>You’re on pace to overspend <Text style={styles.insightStrong}>Dining by ₹620</Text> this month.</Text></View><Pressable onPress={() => router.push("/activity")}><MaterialIcons name="chevron-right" size={24} color={colors.orange} /></Pressable></View>
+            <AICoach spent={totalSpent} budget={monthlyBudget} categories={categoryTotals} goalCount={goals.length} />
 
             <SectionTitle title="Spending by category" action="See all" onAction={() => router.push("/activity")} />
             <View style={styles.categoryRow}>{categoryOrder.map((category) => { const meta = categoryMeta[category]; const value = categoryTotals[category]; return <Pressable key={category} onPress={() => router.push("/activity")} style={({ pressed }) => [styles.categoryCard, pressed && { opacity: 0.72 }]}><IconBubble name={meta.icon as never} color={`${meta.color}18`} iconColor={meta.color} size={42} /><Text style={styles.categoryName}>{category}</Text><Text style={styles.categoryValue}>{formatINR(value)}</Text><ProgressBar value={value} total={meta.limit} color={meta.color} height={5} /></Pressable>; })}</View>
@@ -66,6 +70,10 @@ export default function HomeScreen() {
 function TransactionRow({ transaction }: { transaction: Transaction }) {
   const meta = categoryMeta[transaction.category];
   return <View style={styles.transactionRow}><IconBubble name={meta.icon as never} color={`${meta.color}18`} iconColor={meta.color} size={44} /><View style={styles.transactionInfo}><Text style={styles.transactionMerchant}>{transaction.merchant}</Text><Text style={styles.transactionMeta}>{transaction.category} · {transaction.wallet} · {formatDate(transaction.createdAt)}</Text></View><Text style={styles.transactionAmount}>−{formatINR(transaction.amount)}</Text></View>;
+}
+
+function formatMonth(value: string) {
+  return new Date(`${value}-01T00:00:00`).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
 }
 
 const styles = StyleSheet.create({
@@ -93,6 +101,10 @@ const styles = StyleSheet.create({
   xpBadgeSub: { color: "#8DA5B2", fontSize: 10, marginTop: 3 },
   budgetCard: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", padding: 18, marginBottom: 14 },
   budgetCopy: { flex: 1, paddingRight: 12 },
+  monthRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  monthControls: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: colors.line, borderRadius: 10 },
+  monthArrow: { paddingHorizontal: 3, paddingVertical: 2 },
+  monthLabel: { color: colors.ink, fontSize: 10, fontWeight: "800", minWidth: 58, textAlign: "center" },
   cardEyebrow: { color: colors.muted, fontSize: 10, fontWeight: "900", letterSpacing: 1 },
   budgetTitle: { color: colors.ink, fontSize: 20, fontWeight: "900", marginTop: 7, marginBottom: 12 },
   budgetOf: { color: colors.muted, fontSize: 13, fontWeight: "600" },

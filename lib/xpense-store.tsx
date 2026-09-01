@@ -44,6 +44,8 @@ type StoreState = {
   coins: number;
   streak: number;
   lastSavedAt: string | null;
+  budgetMonth: string;
+  squadCode: string;
 };
 
 type AddExpenseInput = Omit<Transaction, "id" | "createdAt">;
@@ -52,10 +54,14 @@ type StoreContextValue = StoreState & {
   hydrated: boolean;
   addExpense: (expense: AddExpenseInput) => void;
   mergeTransactions: (transactions: Transaction[]) => void;
+  setBudgetMonth: (month: string) => void;
   completeQuest: (questId: string) => void;
   addToGoal: (goalId: string, amount: number) => void;
+  adjustGoal: (goalId: string, amount: number) => void;
+  createGoal: (input: Omit<Goal, "id" | "saved">) => void;
   totalSpent: number;
   categoryTotals: Record<Category, number>;
+  availableMonths: string[];
 };
 
 const STORAGE_KEY = "xpense.local.v1";
@@ -90,6 +96,8 @@ const initialState: StoreState = {
   coins: 840,
   streak: 12,
   lastSavedAt: null,
+  budgetMonth: "2026-09",
+  squadCode: "XP-ARJUN-26",
 };
 
 const StoreContext = createContext<StoreContextValue | null>(null);
@@ -130,6 +138,8 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
     setState((current) => ({ ...current, transactions: mergeTransactionsById(current.transactions, remoteTransactions) }));
   };
 
+  const setBudgetMonth = (month: string) => setState((current) => ({ ...current, budgetMonth: month }));
+
   const completeQuest = (questId: string) => {
     setState((current) => {
       const quest = current.quests.find((item) => item.id === questId);
@@ -143,28 +153,38 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
-  const addToGoal = (goalId: string, amount: number) => {
-    if (!Number.isFinite(amount) || amount <= 0) return;
+  const adjustGoal = (goalId: string, amount: number) => {
+    if (!Number.isFinite(amount) || amount === 0) return;
     setState((current) => ({
       ...current,
-      goals: current.goals.map((goal) => goal.id === goalId ? { ...goal, saved: Math.min(goal.target, goal.saved + amount) } : goal),
-      xp: current.xp + 25,
-      coins: current.coins + 10,
+      goals: current.goals.map((goal) => goal.id === goalId ? { ...goal, saved: Math.max(0, Math.min(goal.target, goal.saved + amount)) } : goal),
+      xp: amount > 0 ? current.xp + 25 : current.xp,
+      coins: amount > 0 ? current.coins + 10 : current.coins,
     }));
   };
 
+  const addToGoal = (goalId: string, amount: number) => adjustGoal(goalId, amount);
+
+  const createGoal = (input: Omit<Goal, "id" | "saved">) => setState((current) => ({ ...current, goals: [...current.goals, { ...input, id: `g-${Date.now()}`, saved: 0 }] }));
+
   const value = useMemo<StoreContextValue>(() => {
+    const availableMonths = Array.from(new Set([state.budgetMonth, ...state.transactions.map((transaction) => transaction.createdAt.slice(0, 7))])).sort().reverse();
+    const monthTransactions = state.transactions.filter((transaction) => transaction.createdAt.slice(0, 7) === state.budgetMonth);
     const categoryTotals: Record<Category, number> = { Food: 0, Transport: 0, Shopping: 0, Bills: 0, Entertainment: 0, Other: 0 };
-    state.transactions.forEach((transaction) => { categoryTotals[transaction.category] += transaction.amount; });
+    monthTransactions.forEach((transaction) => { categoryTotals[transaction.category] += transaction.amount; });
     return {
       ...state,
       hydrated,
       addExpense,
       mergeTransactions,
+      setBudgetMonth,
       completeQuest,
       addToGoal,
-      totalSpent: state.transactions.reduce((sum, transaction) => sum + transaction.amount, 0),
+      adjustGoal,
+      createGoal,
+      totalSpent: monthTransactions.reduce((sum, transaction) => sum + transaction.amount, 0),
       categoryTotals,
+      availableMonths,
     };
   }, [state, hydrated]);
 
