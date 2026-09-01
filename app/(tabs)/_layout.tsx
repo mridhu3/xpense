@@ -35,6 +35,34 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="activity"
+        options={{
+          title: "Activity",
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="chart.bar.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="goals"
+        options={{
+          title: "Goals",
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="target" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="quests"
+        options={{
+          title: "Quests",
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="trophy.fill" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color }) => <IconSymbol size={25} name="person.crop.circle" color={color} />,
+        }}
+      />
     </Tabs>
   );
 }
