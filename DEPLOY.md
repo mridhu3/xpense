@@ -1,6 +1,6 @@
 # XPense Android deployment
 
-XPense is an Expo SDK 54 / React Native app with a local-first student budgeting MVP. The Android application identifier is `com.app.xpense`.
+XPense is an Expo SDK 54 / React Native app with a local-first student budgeting MVP. The Android application identifier is `com.example.xpense`, matching the supplied Firebase `google-services.json`.
 
 ## 1. Run the app locally
 
@@ -27,7 +27,7 @@ Build the internal-testing APK profile:
 eas build --platform android --profile preview
 ```
 
-EAS will print a build URL when the cloud build completes. Download the `.apk` from that URL and install it on an Android device for testing. The `preview` profile is already configured in `eas.json` with `buildType: apk`.
+EAS will print a build URL when the cloud build completes. Download the `.apk` from that URL and install it on an Android device for testing. The `preview` profile is already configured in `eas.json` with `buildType: apk`. The supplied `google-services.json` is included in the project, so build a new native binary after this update; Expo Go will not include native Firebase or push configuration.
 
 ## 3. Build a Google Play release
 
@@ -49,7 +49,7 @@ For future releases, increment the version through EAS remote app versioning or 
 
 The current app includes a polished, phone-sized flow for the XPense core loop: a live dashboard, monthly budget usage, spending-category breakdowns, smart nudge messaging, recent expenses, quick-add expense entry, activity filters and analytics, goal vaults with contributions, XP/levels, coins, streaks, badges, quests, a weekly report card, profile, privacy-first local storage, and settings. Add expense now supports gallery/camera receipt capture with server-side AI vision extraction and categorization, plus Android microphone recording that is transcribed and parsed into an editable expense.
 
-Transactions, goals, quest rewards, XP, coins, and streak data persist on-device with AsyncStorage. The app is intentionally usable offline. Firebase email/password auth and Firestore transaction sync are implemented as an optional cloud layer; configure the variables and rules in `FIREBASE_SETUP.md` to activate multi-device access. AI receipt extraction uses the server-side built-in vision model, while voice uses the server-side transcription service and an AI expense parser, so provider keys are never shipped in the app.
+Transactions, goals, quest rewards, XP, coins, and streak data persist on-device with AsyncStorage. The app is intentionally usable offline. Firebase email/password auth and Firestore transaction sync use the supplied project values, with optional `EXPO_PUBLIC_FIREBASE_*` overrides documented in `FIREBASE_SETUP.md`. AI receipt extraction uses the server-side built-in vision model, while voice uses the server-side transcription service and an AI expense parser, so provider keys are never shipped in the app. Settings includes UPI intent payments, push notification registration, and a local test alert.
 
 ## 5. Before public launch
 

@@ -5,13 +5,15 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { ScreenContainer } from "@/components/screen-container";
 import { FirebaseAccountCard } from "@/components/firebase-account";
 import { Card, colors, LogoMark, MiniStat, SectionTitle } from "@/components/xpense-ui";
+import { firebaseAuth } from "@/lib/firebase";
 import { useXPense } from "@/lib/xpense-store";
 
 export default function ProfileScreen() {
   const { xp, coins, streak, transactions, goals } = useXPense();
+  const accountEmail = firebaseAuth?.currentUser?.email ?? "Local-only account";
   return <ScreenContainer edges={["top", "left", "right"]} style={styles.screen}><ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
     <View style={styles.topRow}><LogoMark /><Pressable onPress={() => router.push("/settings")} style={({ pressed }) => [styles.settingsButton, pressed && { opacity: 0.6 }]}><MaterialIcons name="settings" size={21} color={colors.ink} /></Pressable></View>
-    <View style={styles.profileHead}><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View><Text style={styles.name}>Arjun Mehta</Text><Text style={styles.email}>arjun.mehta@campusmail.in</Text><View style={styles.levelPill}><MaterialIcons name="stars" size={15} color={colors.orange} /><Text style={styles.levelPillText}>Level 08 · Money learner</Text></View></View>
+    <View style={styles.profileHead}><View style={styles.avatar}><Text style={styles.avatarText}>A</Text></View><Text style={styles.name}>Arjun Mehta</Text><Text style={styles.email}>{accountEmail}</Text><View style={styles.levelPill}><MaterialIcons name="stars" size={15} color={colors.orange} /><Text style={styles.levelPillText}>Level 08 · Money learner</Text></View></View>
     <View style={styles.statsRow}><Card style={styles.statCard}><MiniStat label="Total XP" value={xp.toLocaleString("en-IN")} tint={colors.purple} /></Card><Card style={styles.statCard}><MiniStat label="Coins" value={coins.toLocaleString("en-IN")} tint={colors.yellow} /></Card><Card style={styles.statCard}><MiniStat label="Streak" value={`${streak} days`} tint={colors.orange} /></Card></View>
     <SectionTitle title="Your report card" action="This month" />
     <Card style={styles.reportCard}><View style={styles.gradeCircle}><Text style={styles.grade}>A−</Text><Text style={styles.gradeSmall}>great job</Text></View><View style={styles.reportCopy}><Text style={styles.reportTitle}>You’re building strong habits</Text><Text style={styles.reportBody}>You logged {transactions.length} expenses and have {goals.length} goals in motion. Keep your Food spend in check to protect your A.</Text><Pressable onPress={() => router.push("/activity")}><Text style={styles.reportLink}>View detailed insights →</Text></Pressable></View></Card>

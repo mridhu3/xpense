@@ -1,6 +1,6 @@
 # Firebase setup for XPense
 
-XPense uses Firebase Authentication for email/password accounts and Firestore for transaction sync. The app remains usable offline when Firebase is not configured.
+XPense uses Firebase Authentication for email/password accounts and Firestore for transaction sync. The supplied Android Firebase configuration is already included in the project, and the matching client values are bundled with the app. The app remains usable offline if Firebase is unreachable.
 
 ## Create the Firebase project
 
@@ -18,7 +18,7 @@ firebase deploy --only firestore:rules
 
 ## Configure Expo
 
-Set the following variables in the Expo/EAS environment. They are client Firebase configuration values, not server admin credentials. Never add a Firebase Admin service-account JSON file to the mobile app.
+The supplied values are already configured. You can override them for another Firebase project by setting the following variables in the Expo/EAS environment. They are client Firebase configuration values, not server admin credentials. Never add a Firebase Admin service-account JSON file to the mobile app.
 
 ```text
 EXPO_PUBLIC_FIREBASE_API_KEY

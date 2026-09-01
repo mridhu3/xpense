@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "628537368841",
+    "project_id": "xpense-8451c",
+    "storage_bucket": "xpense-8451c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628537368841:android:4ddcab699a73772614b3d8",
+        "android_client_info": {
+          "package_name": "com.example.xpense"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "628537368841-tbf3td29u5dlqnbgu9sef29hvd5gifq1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDIWX4oB5tJ0ETMu-osgx4rknD9xCHpZRk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "628537368841-tbf3td29u5dlqnbgu9sef29hvd5gifq1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
