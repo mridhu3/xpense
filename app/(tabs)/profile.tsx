@@ -3,8 +3,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { ScreenContainer } from "@/components/screen-container";
+import { FirebaseAccountCard } from "@/components/firebase-account";
 import { Card, colors, LogoMark, MiniStat, SectionTitle } from "@/components/xpense-ui";
-import { formatINR, useXPense } from "@/lib/xpense-store";
+import { useXPense } from "@/lib/xpense-store";
 
 export default function ProfileScreen() {
   const { xp, coins, streak, transactions, goals } = useXPense();
@@ -14,6 +15,8 @@ export default function ProfileScreen() {
     <View style={styles.statsRow}><Card style={styles.statCard}><MiniStat label="Total XP" value={xp.toLocaleString("en-IN")} tint={colors.purple} /></Card><Card style={styles.statCard}><MiniStat label="Coins" value={coins.toLocaleString("en-IN")} tint={colors.yellow} /></Card><Card style={styles.statCard}><MiniStat label="Streak" value={`${streak} days`} tint={colors.orange} /></Card></View>
     <SectionTitle title="Your report card" action="This month" />
     <Card style={styles.reportCard}><View style={styles.gradeCircle}><Text style={styles.grade}>A−</Text><Text style={styles.gradeSmall}>great job</Text></View><View style={styles.reportCopy}><Text style={styles.reportTitle}>You’re building strong habits</Text><Text style={styles.reportBody}>You logged {transactions.length} expenses and have {goals.length} goals in motion. Keep your Food spend in check to protect your A.</Text><Pressable onPress={() => router.push("/activity")}><Text style={styles.reportLink}>View detailed insights →</Text></Pressable></View></Card>
+    <SectionTitle title="Account & sync" action="Privacy first" />
+    <FirebaseAccountCard />
     <SectionTitle title="Money setup" />
     <View style={styles.menu}><MenuRow icon="account-balance-wallet" title="Wallets" detail="UPI · Cash · Card" onPress={() => undefined} /><MenuRow icon="notifications-none" title="Nudges & alerts" detail="Smart reminders on" onPress={() => router.push("/settings")} /><MenuRow icon="groups" title="Squad mode" detail="Invite your roommates" onPress={() => undefined} /><MenuRow icon="school" title="Financial literacy" detail="12 lessons available" onPress={() => undefined} /></View>
     <Card style={styles.syncCard}><View style={styles.syncIcon}><MaterialIcons name="cloud-done" size={22} color={colors.teal} /></View><View style={styles.syncCopy}><Text style={styles.syncTitle}>Local-first & private</Text><Text style={styles.syncBody}>Your data is available offline. Cloud sync and squads can be connected when you’re ready.</Text></View></Card>

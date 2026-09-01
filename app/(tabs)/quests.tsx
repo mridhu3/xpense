@@ -18,7 +18,6 @@ export default function QuestsScreen() {
 }
 
 function QuestRow({ quest, onComplete, justCompleted }: { quest: Quest; onComplete: () => void; justCompleted: boolean }) {
-  const percent = quest.total > 0 ? quest.progress / quest.total : 0;
   return <Card style={styles.questCard}><View style={styles.questTop}><View style={styles.questIcon}><MaterialIcons name={quest.icon as never} size={22} color={colors.purple} /></View><View style={styles.questCopy}><Text style={styles.questTitle}>{quest.title}</Text><Text style={styles.questSub}>{quest.subtitle}</Text></View><View style={styles.reward}><Text style={styles.rewardCoin}>●</Text><Text style={styles.rewardText}>+{quest.reward}</Text></View></View><View style={styles.questProgress}><ProgressBar value={quest.progress} total={quest.total} color={quest.completed ? colors.green : colors.purple} height={7} /><Text style={styles.progressText}>{quest.completed ? "Completed" : `${quest.progress} / ${quest.total}`}</Text></View>{!quest.completed ? <Pressable onPress={onComplete} style={({ pressed }) => [styles.questButton, pressed && { opacity: 0.7 }]}><Text style={styles.questButtonText}>{justCompleted ? "Reward claimed" : "Mark complete"}</Text></Pressable> : <Text style={styles.completedText}>✓ Reward claimed</Text>}</Card>;
 }
 

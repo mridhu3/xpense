@@ -3,10 +3,10 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 
 import { ScreenContainer } from "@/components/screen-container";
-import { Card, colors, Currency, IconBubble, ProgressBar, SectionTitle } from "@/components/xpense-ui";
+import { Card, colors, Currency, IconBubble, SectionTitle } from "@/components/xpense-ui";
 import { categoryMeta, formatDate, formatINR, useXPense, type Category, type Transaction } from "@/lib/xpense-store";
 
-const filters: Array<"All" | Category> = ["All", "Food", "Transport", "Shopping", "Entertainment"];
+const filters: ("All" | Category)[] = ["All", "Food", "Transport", "Shopping", "Entertainment"];
 
 export default function ActivityScreen() {
   const { transactions, categoryTotals, totalSpent, monthlyBudget } = useXPense();

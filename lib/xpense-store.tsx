@@ -51,6 +51,7 @@ type AddExpenseInput = Omit<Transaction, "id" | "createdAt">;
 type StoreContextValue = StoreState & {
   hydrated: boolean;
   addExpense: (expense: AddExpenseInput) => void;
+  mergeTransactions: (transactions: Transaction[]) => void;
   completeQuest: (questId: string) => void;
   addToGoal: (goalId: string, amount: number) => void;
   totalSpent: number;
@@ -125,6 +126,10 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
     }));
   };
 
+  const mergeTransactions = (remoteTransactions: Transaction[]) => {
+    setState((current) => ({ ...current, transactions: mergeTransactionsById(current.transactions, remoteTransactions) }));
+  };
+
   const completeQuest = (questId: string) => {
     setState((current) => {
       const quest = current.quests.find((item) => item.id === questId);
@@ -155,6 +160,7 @@ export function XPenseProvider({ children }: { children: React.ReactNode }) {
       ...state,
       hydrated,
       addExpense,
+      mergeTransactions,
       completeQuest,
       addToGoal,
       totalSpent: state.transactions.reduce((sum, transaction) => sum + transaction.amount, 0),
@@ -179,6 +185,12 @@ export const categoryMeta: Record<Category, { icon: string; color: string; limit
   Entertainment: { icon: "movie", color: "#EC4899", limit: 1800 },
   Other: { icon: "more-horiz", color: "#64748B", limit: 2200 },
 };
+
+export function mergeTransactionsById(local: Transaction[], remote: Transaction[]) {
+  const merged = new Map<string, Transaction>();
+  [...local, ...remote].forEach((transaction) => merged.set(transaction.id, transaction));
+  return Array.from(merged.values()).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
 
 export function formatINR(amount: number) {
   return `₹${Math.round(amount).toLocaleString("en-IN")}`;

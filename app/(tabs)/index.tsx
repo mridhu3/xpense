@@ -10,7 +10,7 @@ import { categoryMeta, formatDate, formatINR, useXPense, type Category, type Tra
 const categoryOrder: Category[] = ["Food", "Transport", "Shopping", "Bills", "Entertainment"];
 
 export default function HomeScreen() {
-  const { transactions, goals, totalSpent, monthlyBudget, categoryTotals, streak, xp, coins } = useXPense();
+  const { transactions, goals, totalSpent, monthlyBudget, categoryTotals, xp } = useXPense();
   const budgetPercent = Math.min(totalSpent / monthlyBudget, 1);
   const remaining = Math.max(monthlyBudget - totalSpent, 0);
   const forecast = Math.round(totalSpent * 1.18);

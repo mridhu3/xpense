@@ -64,7 +64,7 @@ const config: ExpoConfig = {
     edgeToEdgeEnabled: true,
     predictiveBackGestureEnabled: false,
     package: env.androidPackage,
-    permissions: ["POST_NOTIFICATIONS"],
+    permissions: ["POST_NOTIFICATIONS", "android.permission.CAMERA"],
     intentFilters: [
       {
         action: "VIEW",
@@ -86,6 +86,13 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    [
+      "expo-image-picker",
+      {
+        photosPermission: "Allow $(PRODUCT_NAME) to select receipt photos.",
+        cameraPermission: "Allow $(PRODUCT_NAME) to photograph receipts.",
+      },
+    ],
     [
       "expo-audio",
       {
